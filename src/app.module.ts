@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -22,6 +23,12 @@ import configuration from './config/configuration';
         logging: process.env.NODE_ENV !== 'production',
       }),
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60,
+        limit: 10,
+      },
+    ]),
     UsersModule,
     AuthModule,
   ],

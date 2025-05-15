@@ -8,7 +8,9 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { LoginDto } from './dto/login.dto';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
