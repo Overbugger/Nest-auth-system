@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards, Get, Req, Res, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +18,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { LoginDto } from './dto/login.dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { Request } from 'express';
+import { Request as ExpressRequest } from 'express';
+
+interface RequestWithCsrf extends ExpressRequest {
+  csrfToken(): string;
+}
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -16,7 +31,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {}
 
   @Post('register')
@@ -26,8 +41,9 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Req() req, @Body() loginDto: LoginDto) {
-    return this.authService.login(req.user);
+  async login(@Req() req, @Body() loginDto: LoginDto, @Res() res) {
+    const result = await this.authService.login(req.user);
+    return res.status(200).json(result);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -38,8 +54,7 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  googleAuth() {
-  }
+  googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
@@ -54,8 +69,11 @@ export class AuthController {
       const decoded = this.jwtService.verify(refreshTokenDto.refreshToken, {
         secret: this.configService.get<string>('jwt.refreshSecret'),
       });
-      
-      return this.authService.refreshTokens(decoded.sub, refreshTokenDto.refreshToken);
+
+      return this.authService.refreshTokens(
+        decoded.sub,
+        refreshTokenDto.refreshToken,
+      );
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
@@ -66,5 +84,10 @@ export class AuthController {
   async logout(@Req() req) {
     await this.authService.logout(req.user.id);
     return { message: 'Logout successful' };
+  }
+
+  @Get('csrf-token')
+  getCsrfToken(@Req() req: RequestWithCsrf) {
+    return { csrfToken: req.csrfToken() };
   }
 }
