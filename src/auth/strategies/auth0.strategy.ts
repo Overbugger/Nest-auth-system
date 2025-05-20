@@ -12,6 +12,7 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
       clientSecret: auth0Config.clientSecret,
       callbackURL: auth0Config.callbackURL,
       scope: 'openid profile email',
+      state: false,
     });
   }
 
