@@ -63,6 +63,23 @@ export class AuthController {
     res.redirect(`http://localhost:4200/auth?token=${accessToken}`);
   }
 
+  @Get('auth0/login')
+  @UseGuards(AuthGuard('auth0'))
+  auth0Login() {
+    // This will redirect to Auth0
+  }
+
+  @Get('auth0/callback')
+  @UseGuards(AuthGuard('auth0'))
+  async auth0Callback(@Req() req, @Res() res) {
+    const tokens = await this.authService.validateOAuthLogin(req.user);
+    return res.status(200).json({
+      message: 'Auth0 login successful',
+      tokens,
+      user: req.user,
+    });
+  }
+
   @Post('refresh')
   async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
     try {
