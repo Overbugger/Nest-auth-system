@@ -107,7 +107,11 @@ export class AuthService {
   }
 
   async validateOAuthLogin(profile: any) {
-    const user = await this.usersService.createOrUpdateOAuthUser(profile);
+    const user = await this.usersService.createOrUpdateOAuthUser({
+      email: profile.email,
+      name: profile.name,
+      auth0Id: profile.id,
+    });
     return this.login(user);
   }
 }

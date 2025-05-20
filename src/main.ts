@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
-import * as csurf from 'csurf';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
@@ -10,12 +9,14 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  app.enableCors({
+    origin: true, 
+    credentials: true,
+  });
+
   app.use(helmet());
 
   app.use(cookieParser());
-  app.use(csurf({ cookie: true }));
-
-  app.enableCors();
 
   app.useGlobalPipes(
     new ValidationPipe({
